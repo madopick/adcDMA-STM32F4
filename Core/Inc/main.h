@@ -120,6 +120,8 @@ typedef enum
 typedef struct{
 	ADC_STATE_E 	status;
 	uint8_t 		active_channel;
+	uint32_t 		conv_len;
+	void    		( *adcDone )( uint32_t size );
 }ADC_STATUS_S;
 
 /**
@@ -128,8 +130,8 @@ typedef struct{
  * */
 extern const struct ADCdma_s
 {
-	HAL_StatusTypeDef (*init)(void);
-	HAL_StatusTypeDef (*getValue)(ADC_CH_E ch, uint32_t* value, uint32_t len, void (*cb)(uint32_t len));
+	HAL_StatusTypeDef (*init)(void (*cb)(uint32_t len));
+	HAL_StatusTypeDef (*getValue)(ADC_CH_E ch, uint32_t* value, uint32_t len);
 	ADC_STATUS_S (*getStatus)(void);
 }ADCdma;
 
