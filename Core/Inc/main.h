@@ -74,6 +74,37 @@ void Error_Handler(void);
 #define TCK_GPIO_Port 				GPIOA
 
 
+/**
+ * @brief   ADC_STATE structure.
+ *
+ * */
+typedef enum
+{
+  ADC_IDLE = 0x00U,
+  ADC_BUSY = 0x01U
+} ADC_STATE_E;
+
+/**
+ * @brief   ADC_STATUS structure.
+ *
+ * */
+typedef struct{
+	ADC_STATE_E 	status;
+	uint8_t 		active_channel;
+}ADC_STATUS_S;
+
+/**
+ * @brief   ADC_DMA structure.
+ *
+ * */
+extern const struct ADCdma_s
+{
+	HAL_StatusTypeDef (*init)(void);
+	HAL_StatusTypeDef (*getValue)(uint8_t ch, uint32_t* value, uint32_t len);
+	ADC_STATUS_S (*getStatus)(void);
+}ADCdma;
+
+
 #ifdef __cplusplus
 }
 #endif

@@ -33,6 +33,7 @@
 ADC_HandleTypeDef 	hadc1;
 DMA_HandleTypeDef 	hdma_adc1;
 UART_HandleTypeDef 	huart3;
+ADC_STATUS_S 		adcStatus;
 
 /* Variable used to get converted value */
 __IO uint16_t adcConvertedValue = 0;
@@ -46,7 +47,59 @@ static void MX_ADC1_Init(void);
 static void MX_USART3_UART_Init(void);
 
 
+
 /* Private user code ---------------------------------------------------------*/
+/************************************************
+  * @name 	: _adc_dma_init
+  * @brief	:Initialize ADC with DMA operation
+  ***********************************************/
+static HAL_StatusTypeDef _adc_dma_init(void)
+{
+	MX_DMA_Init();
+	MX_ADC1_Init();
+	adcStatus.status = ADC_IDLE;
+	return HAL_OK;
+}
+
+/************************************************
+  * @name 	: _adc_dma_getValue
+  * @brief	:Get value from ADC
+  ***********************************************/
+static HAL_StatusTypeDef _adc_dma_getValue(uint8_t ch, uint32_t* value, uint32_t len)
+{
+	adcStatus.active_channel 	= ch;
+	adcStatus.status			= ADC_BUSY;
+
+	/** Start ADC the conversion process */
+	if(HAL_ADC_Start_DMA(&hadc1, (uint32_t*)value, len) != HAL_OK)
+	{
+	  /* Start Conversion Error */
+	  Error_Handler();
+	}
+
+	adcStatus.status			= ADC_IDLE;
+	return HAL_OK;
+}
+
+/************************************************
+  * @name 	: _adc_dma_getStatus
+  * @brief	: Get ADC status
+  ***********************************************/
+static ADC_STATUS_S _adc_dma_getStatus(void)
+{
+	return adcStatus;
+}
+
+
+
+///ADC_DMA
+const struct ADCdma_s ADCdma =
+{
+		.init 	 	= _adc_dma_init,
+		.getValue	= _adc_dma_getValue,
+		.getStatus	= _adc_dma_getStatus
+};
+
 
 /**
   * @brief  The application entry point.
@@ -64,9 +117,11 @@ int main(void)
 
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
-  MX_DMA_Init();
-  MX_ADC1_Init();
   MX_USART3_UART_Init();
+
+  ADCdma.init();
+
+  ADC_STATUS_S adcCurStatus;
 
   /* Infinite loop */
   while (1)
@@ -74,14 +129,17 @@ int main(void)
 	  HAL_GPIO_TogglePin(GPIOB, LD1_Pin);
 	  HAL_Delay(1000);
 
-	  /** Start ADC the conversion process */
-	  if(HAL_ADC_Start_DMA(&hadc1, (uint32_t*)&adcConvertedValue, 1) != HAL_OK)
-	  {
-		  /* Start Conversion Error */
-		  Error_Handler();
+	  adcCurStatus = ADCdma.getStatus();
+	  if(adcCurStatus.status == ADC_IDLE){
+		  if(ADCdma.getValue(1, (uint32_t*)&adcConvertedValue, 1) != HAL_OK){
+			  /* Start Conversion Error */
+			  Error_Handler();
+		  }else{
+			  /* Conversion OK */
+			  HAL_GPIO_TogglePin(GPIOB, LD2_Pin);
+		  }
 	  }else{
-		  /* Conversion OK */
-		  HAL_GPIO_TogglePin(GPIOB, LD2_Pin);
+		  HAL_GPIO_WritePin(GPIOB, LD3_Pin, GPIO_PIN_RESET);
 	  }
   }
 }
