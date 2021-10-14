@@ -65,10 +65,18 @@ static HAL_StatusTypeDef _adc_dma_init(void)
   * @name 	: _adc_dma_getValue
   * @brief	:Get value from ADC
   ***********************************************/
-static HAL_StatusTypeDef _adc_dma_getValue(uint8_t ch, uint32_t* value, uint32_t len)
+static HAL_StatusTypeDef _adc_dma_getValue(ADC_CH_E ch, uint32_t* value, uint32_t len)
 {
 	adcStatus.active_channel 	= ch;
 	adcStatus.status			= ADC_BUSY;
+
+	ADC_ChannelConfTypeDef adcConf = {0};
+
+	/* configure adc channel */
+	adcConf.Channel 			= ch;
+	adcConf.Rank				= 1;
+	adcConf.SamplingTime 		= ADC_SAMPLETIME_3CYCLES;
+	HAL_ADC_ConfigChannel(&hadc1, &adcConf);
 
 	/** Start ADC the conversion process */
 	if(HAL_ADC_Start_DMA(&hadc1, (uint32_t*)value, len) != HAL_OK)
@@ -131,7 +139,7 @@ int main(void)
 
 	  adcCurStatus = ADCdma.getStatus();
 	  if(adcCurStatus.status == ADC_IDLE){
-		  if(ADCdma.getValue(1, (uint32_t*)&adcConvertedValue, 1) != HAL_OK){
+		  if(ADCdma.getValue(ADC_CH10, (uint32_t*)&adcConvertedValue, 1) != HAL_OK){
 			  /* Start Conversion Error */
 			  Error_Handler();
 		  }else{
