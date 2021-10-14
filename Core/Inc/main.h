@@ -129,7 +129,7 @@ typedef struct{
 extern const struct ADCdma_s
 {
 	HAL_StatusTypeDef (*init)(void);
-	HAL_StatusTypeDef (*getValue)(ADC_CH_E ch, uint32_t* value, uint32_t len);
+	HAL_StatusTypeDef (*getValue)(ADC_CH_E ch, uint32_t* value, uint32_t len, void (*cb)(uint32_t len));
 	ADC_STATUS_S (*getStatus)(void);
 }ADCdma;
 

@@ -65,7 +65,7 @@ static HAL_StatusTypeDef _adc_dma_init(void)
   * @name 	: _adc_dma_getValue
   * @brief	:Get value from ADC
   ***********************************************/
-static HAL_StatusTypeDef _adc_dma_getValue(ADC_CH_E ch, uint32_t* value, uint32_t len)
+static HAL_StatusTypeDef _adc_dma_getValue(ADC_CH_E ch, uint32_t* value, uint32_t len, void (*cb)(uint32_t len))
 {
 	adcStatus.active_channel 	= ch;
 	adcStatus.status			= ADC_BUSY;
@@ -86,6 +86,11 @@ static HAL_StatusTypeDef _adc_dma_getValue(ADC_CH_E ch, uint32_t* value, uint32_
 	}
 
 	adcStatus.status			= ADC_IDLE;
+
+	if(cb != NULL){
+		cb(len);
+	}
+
 	return HAL_OK;
 }
 
@@ -107,6 +112,16 @@ const struct ADCdma_s ADCdma =
 		.getValue	= _adc_dma_getValue,
 		.getStatus	= _adc_dma_getStatus
 };
+
+
+/**
+  * @brief  ADC_DMA complete conversion CB.
+  * @retval int
+  */
+void adcConvComplete(uint32_t len)
+{
+	HAL_GPIO_TogglePin(GPIOB, LD3_Pin);
+}
 
 
 /**
@@ -139,7 +154,7 @@ int main(void)
 
 	  adcCurStatus = ADCdma.getStatus();
 	  if(adcCurStatus.status == ADC_IDLE){
-		  if(ADCdma.getValue(ADC_CH10, (uint32_t*)&adcConvertedValue, 1) != HAL_OK){
+		  if(ADCdma.getValue(ADC_CH10, (uint32_t*)&adcConvertedValue, 1, NULL) != HAL_OK){
 			  /* Start Conversion Error */
 			  Error_Handler();
 		  }else{
