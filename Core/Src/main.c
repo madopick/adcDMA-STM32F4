@@ -24,7 +24,6 @@
 
 /* Private typedef -----------------------------------------------------------*/
 
-
 /* Private define ------------------------------------------------------------*/
 
 /* Private macro -------------------------------------------------------------*/
@@ -34,6 +33,9 @@
 ADC_HandleTypeDef 	hadc1;
 DMA_HandleTypeDef 	hdma_adc1;
 UART_HandleTypeDef 	huart3;
+
+/* Variable used to get converted value */
+__IO uint16_t adcConvertedValue = 0;
 
 
 /* Private function prototypes -----------------------------------------------*/
@@ -71,6 +73,16 @@ int main(void)
   {
 	  HAL_GPIO_TogglePin(GPIOB, LD1_Pin);
 	  HAL_Delay(1000);
+
+	  /** Start ADC the conversion process */
+	  if(HAL_ADC_Start_DMA(&hadc1, (uint32_t*)&adcConvertedValue, 1) != HAL_OK)
+	  {
+		  /* Start Conversion Error */
+		  Error_Handler();
+	  }else{
+		  /* Conversion OK */
+		  HAL_GPIO_TogglePin(GPIOB, LD2_Pin);
+	  }
   }
 }
 
