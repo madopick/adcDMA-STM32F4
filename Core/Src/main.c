@@ -74,11 +74,24 @@ const ADC_CH_E adc_ch_selection [] =
 	ADC_CH13,
 };
 
+
+uint8_t spiTxBuffer[] = "****SPI - SEND SPI Message By Master ****";
+uint8_t spiRxBuffer[sizeof(spiTxBuffer)/sizeof(spiTxBuffer[0])];
+
 /**
   * @brief  ADC_DMA complete conversion CB.
   * @retval int
   */
 void adcConvComplete(uint32_t len)
+{
+	HAL_GPIO_TogglePin(GPIOB, LD3_Pin);
+}
+
+/**
+  * @brief  SPI_DMA complete conversion CB.
+  * @retval int
+  */
+void spiTransferComplete(uint32_t len)
 {
 	HAL_GPIO_TogglePin(GPIOB, LD3_Pin);
 }
@@ -105,29 +118,42 @@ int main(void)
   ADCdma.init(adcConvComplete);		//can also be NULL
   SPIdma.init(NULL);
 
-  ADC_STATUS_S adcCurStatus;
+  //ADC_STATUS_S adcCurStatus;
 
   /* Infinite loop */
   while (1)
   {
 	  HAL_GPIO_TogglePin(GPIOB, LD1_Pin);
-	  puts("ADC Start\r\n");
+	  puts("ADC / SPI Start\r\n");
+	  HAL_Delay(1000);
 
-	  for(size_t i=0; i<sizeof(adc_ch_selection)/sizeof(*adc_ch_selection); i++)
-	  {
-		  HAL_Delay(200);
+//	  for(size_t i=0; i<sizeof(adc_ch_selection)/sizeof(*adc_ch_selection); i++)
+//	  {
+//		  HAL_Delay(200);
+//
+//		  adcCurStatus = ADCdma.getStatus();
+//		  if(adcCurStatus.status == ADC_IDLE){
+//			  if(ADCdma.getValue(ADC_CH10, (uint32_t*)&adcConvertedValue, 1) != HAL_OK){
+//				  /* Start Conversion Error */
+//				  Error_Handler();
+//			  }else{
+//				  /* Conversion OK */
+//				  HAL_GPIO_TogglePin(GPIOB, LD2_Pin);
+//			  }
+//		  }
+//	  }
 
-		  adcCurStatus = ADCdma.getStatus();
-		  if(adcCurStatus.status == ADC_IDLE){
-			  if(ADCdma.getValue(ADC_CH10, (uint32_t*)&adcConvertedValue, 1) != HAL_OK){
-				  /* Start Conversion Error */
-				  Error_Handler();
-			  }else{
-				  /* Conversion OK */
-				  HAL_GPIO_TogglePin(GPIOB, LD2_Pin);
-			  }
-		  }
+
+	  if(SPIdma.tranRecv((uint8_t*)spiTxBuffer, (uint8_t *)spiRxBuffer, sizeof(spiTxBuffer)/sizeof(spiTxBuffer[0])) != HAL_OK){
+		  /* Start Conversion Error */
+		  Error_Handler();
+	  }else{
+		  /* Conversion OK */
+		  HAL_GPIO_TogglePin(GPIOB, LD2_Pin);
 	  }
+
+	  puts((char*)spiRxBuffer);
+	  memset(spiRxBuffer, 0, sizeof(spiTxBuffer)/sizeof(spiTxBuffer[0]));
   }
 }
 
