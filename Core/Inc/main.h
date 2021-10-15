@@ -30,6 +30,7 @@ extern "C" {
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_hal.h"
 #include "adc_dma.h"
+#include "afe_spi.h"
 
 /* Private includes ----------------------------------------------------------*/
 

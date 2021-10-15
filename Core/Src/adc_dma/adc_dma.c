@@ -81,6 +81,11 @@ const struct ADCdma_s ADCdma =
 };
 
 
+
+/*************************************************************************************
+ * 									STM32 Driver									 *
+ *************************************************************************************/
+
 /************************************************
   * @name 	: _adc_dma_getStatus
   * @brief	: STM32 ADC Conversion
@@ -95,11 +100,6 @@ void HAL_ADC_ConvCpltCallback(ADC_HandleTypeDef* hadc)
 	}
 }
 
-
-
-/************************
- * STM32 Driver
- ************************/
 
 /**
   * @brief STM32 ADC1 Initialization Function

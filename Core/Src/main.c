@@ -82,7 +82,8 @@ int main(void)
   MX_GPIO_Init();
   MX_USART3_UART_Init();
 
-  ADCdma.init(adcConvComplete);		//can also NULL
+  ADCdma.init(adcConvComplete);		//can also be NULL
+  SPIdma.init(NULL);
 
   ADC_STATUS_S adcCurStatus;
 
