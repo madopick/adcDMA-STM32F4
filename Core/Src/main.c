@@ -18,6 +18,8 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "stdio.h"
+#include "string.h"
 
 /* Private includes ----------------------------------------------------------*/
 
@@ -44,6 +46,24 @@ static void MX_USART3_UART_Init(void);
 
 
 /* Private user code ---------------------------------------------------------*/
+
+#ifdef __GNUC__
+/* With GCC, small printf (option LD Linker->Libraries->Small printf set to 'Yes') calls __io_putchar() */
+#define PUTCHAR_PROTOTYPE int __io_putchar(int ch)
+#else
+#define PUTCHAR_PROTOTYPE int fputc(int ch, FILE *f)
+#endif /* __GNUC__ */
+
+/******************************************************************
+  * @name   PUTCHAR_PROTOTYPE
+  * @brief  Retargets the C library printf function to the USART.
+  *****************************************************************/
+PUTCHAR_PROTOTYPE
+{
+	HAL_UART_Transmit(&huart3, (uint8_t *)&ch, 1, 0xFFFF);				//Use USART3
+	return ch;
+}
+
 
 const ADC_CH_E adc_ch_selection [] =
 {
@@ -91,6 +111,7 @@ int main(void)
   while (1)
   {
 	  HAL_GPIO_TogglePin(GPIOB, LD1_Pin);
+	  puts("ADC Start\r\n");
 
 	  for(size_t i=0; i<sizeof(adc_ch_selection)/sizeof(*adc_ch_selection); i++)
 	  {
